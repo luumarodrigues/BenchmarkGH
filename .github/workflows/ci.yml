@@ -38,9 +38,6 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: 1.22.2
-      - run: go install golang.org/x/perf/cmd/benchstat@latest
-      - name: Add Go bin to PATH
-        run: echo "$HOME/go/bin" >> $GITHUB_PATH     
       - name: Find Pull Request
         id: find_pr
         env:
@@ -95,6 +92,9 @@ jobs:
         with:
           name: bench-main
           path: app/
+      - run: go install golang.org/x/perf/cmd/benchstat@latest
+      - name: Add Go bin to PATH
+        run: echo "$HOME/go/bin" >> $GITHUB_PATH
       - run: |
           benchstat main=bench-main.txt current=bench-current.txt > result.txt
           cat result.txt
