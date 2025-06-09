@@ -93,7 +93,6 @@ jobs:
           name: bench-main
           path: app/
       - name: Analyze benchmarks results and comment on PR
-        if: env.prExists == 'true'
         uses: ./.github/actions/benchmark-analyze
         with:
           bench-main: app/bench-main.txt
