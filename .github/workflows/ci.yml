@@ -111,7 +111,7 @@ jobs:
       run: |
         echo "Running OpenAI"
         benchresult=$(cat result.txt | jq -Rs .)
-        curl -X POST 'https://webpoc.ashystone-186beaf0.eastus.azurecontainerapps.io/Bench' -H 'accept: text/plain' -H 'Content-Type: application/json' -d "{\"benchresult\": $benchresult}" > opencomment.md
+        curl -X POST 'https://openaigh-ggcze4eygjf8a2az.eastus-01.azurewebsites.net/Bench' -H 'accept: text/plain' -H 'Content-Type: application/json' -d "{\"benchresult\": $benchresult}" > opencomment.md
         cat opencomment.md
     
     - name: Create PR Comment
