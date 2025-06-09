@@ -1,0 +1,27 @@
+name: 'Benchmark Analyze'
+description: 'Compara benchmarks e gera análise usando Azure OpenAI.'
+author: 'Seu Nome'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+inputs:
+  bench-main:
+    description: 'Arquivo de benchmark da branch main.'
+    required: true
+    default: 'bench-main.txt'
+  bench-current:
+    description: 'Arquivo de benchmark da branch atual.'
+    required: true
+    default: 'bench-current.txt'
+  azure-openai-key:
+    description: 'Chave de API do Azure OpenAI.'
+    required: true
+  azure-openai-endpoint:
+    description: 'Endpoint da API do Azure OpenAI.'
+    required: true
+  pr-number:
+    description: 'Número do Pull Request.'
+    required: false
+  github-token:
+    description: 'Token do GitHub para comentar no PR.'
+    required: false
