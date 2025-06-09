@@ -107,7 +107,7 @@ jobs:
             "messages": [
               {
                 "role": "system",
-                "content": "Você é um assistente de análise de benchmark. Analise o resultado do benchstat abaixo e explique, de forma simples, direta e sem termos técnicos, se houve melhora, piora ou se está igual em desempenho, uso de memória e alocações. Resuma em poucas frases."
+                "content": "Você é um assistente de análise de benchmark. Analise o resultado do benchstat abaixo e explique, de forma simples e direta, se houve melhora, piora ou se está igual em desempenho, uso de memória e alocações. Resuma em poucas frases."
               },
               {
                 "role": "user",
