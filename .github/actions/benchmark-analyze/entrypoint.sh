@@ -14,7 +14,7 @@ PR_NUMBER=${INPUT_PR_NUMBER}
 GITHUB_TOKEN=${INPUT_GITHUB_TOKEN}
 
 # Run benchstat
-benchstat main=$BENCH_MAIN current=$BENCH_CURRENT > result.txt
+benchstat "$BENCH_MAIN" "$BENCH_CURRENT" > result.txt
 
 # Ensure UTF-8
 iconv -f utf-8 -t utf-8 result.txt > result_utf8.txt
