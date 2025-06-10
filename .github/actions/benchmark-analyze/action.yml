@@ -4,8 +4,6 @@ author: 'Seu Nome'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  env:
-    GITHUB_REPOSITORY: ${{ github.repository }}
 inputs:
   bench_main:
     description: 'Arquivo de benchmark da branch main.'
