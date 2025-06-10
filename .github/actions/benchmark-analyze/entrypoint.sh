@@ -37,7 +37,7 @@ iconv -f utf-8 -t utf-8 result.txt > result_utf8.txt
 # Prepare JSON payload
 json_payload=$(jq -n --rawfile content result_utf8.txt '{
   "messages": [
-    { "role": "system", "content": "Você é um assistente de análise de benchmark. Analise o resultado do benchstat abaixo e explique, de forma simples e direta, se houve melhora, piora ou se está igual em desempenho, uso de memória e alocações. Resuma em poucas frases." },
+    { "role": "system", "content": "Você é um assistente de análise de benchmark. Analise o resultado do benchstat e explique, de forma simples, direta e profissional, se houve melhora, piora ou se está igual em desempenho, uso de memória e alocações. Resuma em poucas frases." },
     { "role": "user", "content": $content }
   ],
   "max_tokens": 200,
