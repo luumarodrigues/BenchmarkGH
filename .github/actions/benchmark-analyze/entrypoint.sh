@@ -1,6 +1,12 @@
 #!/bin/bash
 set -ex
 
+# Mapear variáveis de ambiente com hífen para underline
+for var in $(env | grep '^INPUT_' | cut -d= -f1); do
+  fixed_var=$(echo "$var" | tr '-' '_')
+  eval "export $fixed_var=\"${!var}\""
+done
+
 # Debug: List files and directories
 ls -lR /github/workspace
 cd /github/workspace
