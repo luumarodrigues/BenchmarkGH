@@ -3,6 +3,7 @@ set -e
 
 # Debug: List files and directories
 ls -lR /github/workspace
+cd /github/workspace
 
 # Inputs
 BENCH_MAIN=${INPUT_BENCH_MAIN:-bench-main.txt}
