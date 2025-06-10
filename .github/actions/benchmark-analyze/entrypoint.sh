@@ -17,6 +17,9 @@ echo "BENCH_MAIN: $BENCH_MAIN"
 echo "BENCH_CURRENT: $BENCH_CURRENT"
 ls -l "$BENCH_MAIN" "$BENCH_CURRENT"
 
+# Debug: List all INPUT_ variables
+env | grep '^INPUT_'
+
 # Run benchstat
 benchstat "$BENCH_MAIN" "$BENCH_CURRENT" > result.txt
 
