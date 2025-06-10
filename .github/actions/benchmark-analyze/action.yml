@@ -5,11 +5,11 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
 inputs:
-  bench-main:
+  bench_main:
     description: 'Arquivo de benchmark da branch main.'
     required: true
     default: 'bench-main.txt'
-  bench-current:
+  bench_current:
     description: 'Arquivo de benchmark da branch atual.'
     required: true
     default: 'bench-current.txt'
