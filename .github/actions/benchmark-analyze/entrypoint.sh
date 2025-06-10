@@ -54,12 +54,14 @@ fi
 cat opencomment.md
 
 # Optionally, create PR comment if PR_NUMBER and GITHUB_TOKEN are set
-if [ -n "$PR_NUMBER" ] && [ -n "$GITHUB_TOKEN" ]; then
+echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+if [ -n "$PR_NUMBER" ] && [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_REPOSITORY" ]; then
   COMMENT_BODY=$(echo -e "## Resultados do Benchmark\n\n\
 \`\`\`\n$(cat result.txt)\n\`\`\`\n\n## Análise do resultado\n\n$(cat opencomment.md)")
-  # Cria comentário via API REST do GitHub
+  jq -n --arg body "$COMMENT_BODY" '{body: $body}' > payload.json
   curl -s -H "Authorization: token $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    -d "{\"body\": \"$COMMENT_BODY\"}" \
-    "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
+    --data @payload.json \
+    "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" > github_response.json
+  cat github_response.json
 fi

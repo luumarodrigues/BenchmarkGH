@@ -150,8 +150,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -s result.txt -a -s opencomment.md ]; then
-            COMMENT_BODY=$(echo -e "## Resultados do Benchmark\n\n\`\`\`\n$(cat result.txt)\n\`\`\`\n\n## Análise do resultado\n\n$(cat opencomment.md)")
-            echo "$COMMENT_BODY" > comment_body.md
-            gh pr comment $PR_NUMBER --body "$(cat comment_body.md)"
-          fi
+          echo "Este step foi removido. O comentário no PR agora é feito diretamente pela action customizada."
