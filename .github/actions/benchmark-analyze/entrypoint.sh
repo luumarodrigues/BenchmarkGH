@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 # Debug: List files and directories
 ls -lR /github/workspace
@@ -20,6 +20,7 @@ ls -l "$BENCH_MAIN" "$BENCH_CURRENT"
 
 # Debug: List all INPUT_ variables
 env | grep '^INPUT_'
+echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
 
 # Run benchstat
 benchstat "$BENCH_MAIN" "$BENCH_CURRENT" > result.txt
@@ -55,14 +56,16 @@ fi
 cat opencomment.md
 
 # Optionally, create PR comment if PR_NUMBER and GITHUB_TOKEN are set
-echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
 if [ -n "$PR_NUMBER" ] && [ -n "$GITHUB_TOKEN" ] && [ -n "$GITHUB_REPOSITORY" ]; then
   COMMENT_BODY=$(echo -e "## Resultados do Benchmark\n\n\
 \`\`\`\n$(cat result.txt)\n\`\`\`\n\n## Análise do resultado\n\n$(cat opencomment.md)")
   jq -n --arg body "$COMMENT_BODY" '{body: $body}' > payload.json
+  set +e
   curl -s -H "Authorization: token $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
     --data @payload.json \
     "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" > github_response.json
+  echo "Resposta da API do GitHub:"
   cat github_response.json
+  set -e
 fi
