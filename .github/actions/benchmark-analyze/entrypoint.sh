@@ -4,7 +4,7 @@ set -ex
 # Mapear variáveis de ambiente com hífen para underline
 for var in $(env | grep '^INPUT_' | cut -d= -f1); do
   fixed_var=$(echo "$var" | tr '-' '_')
-  eval "export $fixed_var=\"${!var}\""
+  eval "export $fixed_var=\"$(printenv "$var")\""
 done
 
 # Debug: List files and directories
