@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Debug: List files and directories
+ls -lR /github/workspace
+
 # Inputs
 BENCH_MAIN=${INPUT_BENCH_MAIN:-bench-main.txt}
 BENCH_CURRENT=${INPUT_BENCH_CURRENT:-bench-current.txt}
