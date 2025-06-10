@@ -33,6 +33,8 @@ jobs:
     defaults:
       run:
         working-directory: app/
+    outputs:
+      pr_number: ${{ steps.find_pr.outputs.pr_number }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -51,6 +53,7 @@ jobs:
           else
             echo  "prExists=true" >> $GITHUB_ENV
             echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+            echo "::set-output name=pr_number::$PR_NUMBER"
           fi
       - name: Run Go Bench (current branch)
         if: env.prExists == 'true'
@@ -96,7 +99,7 @@ jobs:
           bench_current: app/bench-current.txt
           azure-openai-key: ${{ secrets.AZURE_OPENAI_KEY }}
           azure-openai-endpoint: 'https://openai-ghagent.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview'
-          pr-number: ${{ env.PR_NUMBER }}
+          pr-number: ${{ needs.benchmark.outputs.pr_number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}    
       # - run: go install golang.org/x/perf/cmd/benchstat@latest
       # - name: Add Go bin to PATH
