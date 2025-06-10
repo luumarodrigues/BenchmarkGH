@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y curl jq golang-go iconv git && \
+    apt-get install -y curl jq golang-go git && \
     rm -rf /var/lib/apt/lists/*
 
 # Install benchstat
