@@ -57,6 +57,9 @@ cat opencomment.md
 if [ -n "$PR_NUMBER" ] && [ -n "$GITHUB_TOKEN" ]; then
   COMMENT_BODY=$(echo -e "## Resultados do Benchmark\n\n\
 \`\`\`\n$(cat result.txt)\n\`\`\`\n\n## Análise do resultado\n\n$(cat opencomment.md)")
-  echo "$COMMENT_BODY" > comment_body.md
-  gh pr comment "$PR_NUMBER" --body "$(cat comment_body.md)"
+  # Cria comentário via API REST do GitHub
+  curl -s -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"body\": \"$COMMENT_BODY\"}" \
+    "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
 fi
