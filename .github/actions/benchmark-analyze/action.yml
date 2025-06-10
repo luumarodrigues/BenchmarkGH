@@ -27,3 +27,6 @@ inputs:
   github-token:
     description: 'Token do GitHub para comentar no PR.'
     required: false
+  github-repository:
+    description: 'Nome do repositório (owner/repo).'
+    required: true

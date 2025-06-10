@@ -100,54 +100,5 @@ jobs:
           azure-openai-key: ${{ secrets.AZURE_OPENAI_KEY }}
           azure-openai-endpoint: 'https://openai-ghagent.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview'
           pr-number: ${{ needs.benchmark.outputs.pr_number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}    
-      # - run: go install golang.org/x/perf/cmd/benchstat@latest
-      # - name: Add Go bin to PATH
-      #   run: echo "$HOME/go/bin" >> $GITHUB_PATH
-      # - run: |
-      #     benchstat main=bench-main.txt current=bench-current.txt > result.txt
-      #     cat result.txt
-      # - run: |
-      #     # Garante UTF-8 puro (mantém se necessário)
-      #     iconv -f utf-8 -t utf-8 result.txt > result_utf8.txt
-
-      #     # Monta o payload JSON para o modelo
-      #     json_payload=$(jq -n --rawfile content result_utf8.txt '{
-      #       "messages": [
-      #         {
-      #           "role": "system",
-      #           "content": "Você é um assistente de análise de benchmark. Analise o resultado do benchstat abaixo e explique, de forma simples e direta, se houve melhora, piora ou se está igual em desempenho, uso de memória e alocações. Resuma em poucas frases."
-      #         },
-      #         {
-      #           "role": "user",
-      #           "content": $content
-      #         }
-      #       ],
-      #       "max_tokens": 200,
-      #       "temperature": 0.5,
-      #       "top_p": 0.95
-      #     }')
-
-      #     # Envia para o Azure OpenAI e salva só a resposta
-      #     response=$(curl -s -w "%{http_code}" -o response.json \
-      #       -X POST 'https://openai-ghagent.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview' \
-      #       -H 'Content-Type: application/json' \
-      #       -H "api-key: ${{ secrets.AZURE_OPENAI_KEY }}" \
-      #       -d "$json_payload")
-
-      #     # Verifica se a resposta foi 200
-      #     if [ "$response" = "200" ]; then
-      #       jq -r '.choices[0].message.content' response.json > opencomment.md
-      #     else
-      #       echo "Erro ao chamar o modelo: $response" > opencomment.md
-      #       cat response.json >> opencomment.md
-      #     fi
-
-      #     cat opencomment.md
-      #     # benchresult=$(cat result.txt | jq -Rs .)
-      #     # curl -X POST 'https://openaigh-ggcze4eygjf8a2az.eastus-01.azurewebsites.net/Bench' -H 'accept: text/plain' -H 'Content-Type: application/json' -d "{\"benchresult\": $benchresult}" > opencomment.md
-      - name: Create PR Comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Este step foi removido. O comentário no PR agora é feito diretamente pela action customizada."
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-repository: ${{ github.repository }}
