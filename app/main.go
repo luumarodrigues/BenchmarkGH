@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-// bubbleSort ordena um slice de inteiros
+// Algoritmo bubbleSort ordena um slice de inteiros
 func Sort(arr []int) []int {
 	n := len(arr)
 	// Percorre o slice comparando o elemento ao lado e trocando de lugar se necessário
