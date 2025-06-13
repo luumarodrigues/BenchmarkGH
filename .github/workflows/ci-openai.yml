@@ -2,10 +2,10 @@ name: CI Workflow - benchmark with OpenAI
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'main'
-      - 'feature/**'
+  # push:
+  #   branches:
+  #     - 'main'
+  #     - 'feature/**'
 
 permissions:
   pull-requests: write

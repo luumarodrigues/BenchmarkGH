@@ -2,10 +2,10 @@ name: CI Workflow - benchmark with Action
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'main'
-      - 'feature/**'
+  # push:
+  #   branches:
+  #     - 'main'
+  #     - 'feature/**'
 
 permissions:
   pull-requests: write
