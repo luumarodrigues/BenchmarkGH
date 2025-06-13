@@ -1,0 +1,161 @@
+name: Go
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+      - 'feature/**'
+
+permissions:
+  pull-requests: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.22.2
+
+    - name: Install dependencies
+      run: go mod tidy
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Run tests
+      run: go test -v ./...
+
+  benchmark:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
+
+      - name: Find Pull Request
+        id: find_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
+          | jq '.[0].number')
+          if [ "$PR_NUMBER" == "null" ]; then
+            echo  "prExists=false" >> $GITHUB_ENV
+          else
+            echo  "prExists=true" >> $GITHUB_ENV
+            echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          fi
+
+      - name: Run Go Bench (current branch)
+        if: env.prExists == 'true'
+        run: go test -count=10 -cpu=1,2,4 -benchmem -run=^$ -bench ^*$ ./... > bench-current.txt
+
+      - name: Upload benchmark results
+        if: env.prExists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-current
+          path: app/bench-current.txt
+
+      - name: Checkout main branch
+        if: env.prExists == 'true'
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Run Go Bench (main branch)
+        if: env.prExists == 'true'
+        run: go test -count=10 -cpu=1,2,4 -benchmem -run=^$ -bench ^*$ ./... > bench-main.txt
+
+      - name: Upload benchmark results
+        if: env.prExists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-main
+          path: app/bench-main.txt
+
+  analyze-and-comment:
+    needs: benchmark
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: bench-current
+          path: app/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: bench-main
+          path: app/
+
+      - run: go install golang.org/x/perf/cmd/benchstat@latest
+      - name: Add Go bin to PATH
+        run: echo "$HOME/go/bin" >> $GITHUB_PATH
+      - run: |
+          benchstat main=bench-main.txt current=bench-current.txt > result.txt
+          cat result.txt
+
+      - name: Analyze benchmark results with OpenAI
+      - run: |
+          # Garante UTF-8 puro (mantém se necessário)
+          iconv -f utf-8 -t utf-8 result.txt > result_utf8.txt
+          # Monta o payload JSON para o modelo
+          json_payload=$(jq -n --rawfile content result_utf8.txt '{
+            "messages": [
+              {
+                "role": "system",
+                "content": "Você é um assistente de análise de benchmark. Analise o resultado do benchstat e explique, de forma simples, direta e sem termos técnicos, se houve melhora, piora ou se está igual em desempenho, uso de memória e alocações. Resuma em poucas frases e seja profissional."
+              },
+              {
+                "role": "user",
+                "content": $content
+              }
+            ],
+            "max_tokens": 200,
+            "temperature": 0.5,
+            "top_p": 0.95
+          }')
+          # Envia para o Azure OpenAI e salva só a resposta
+          response=$(curl -s -w "%{http_code}" -o response.json \
+            -X POST 'https://openai-ghagent.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview' \
+            -H 'Content-Type: application/json' \
+            -H "api-key: ${{ secrets.AZURE_OPENAI_KEY }}" \
+            -d "$json_payload")
+          # Verifica se a resposta foi 200
+          if [ "$response" = "200" ]; then
+            jq -r '.choices[0].message.content' response.json > opencomment.md
+          else
+            echo "Erro ao chamar o modelo: $response" > opencomment.md
+            cat response.json >> opencomment.md
+          fi
+          cat opencomment.md
+          # benchresult=$(cat result.txt | jq -Rs .)
+          # curl -X POST 'https://openaigh-ggcze4eygjf8a2az.eastus-01.azurewebsites.net/Bench' -H 'accept: text/plain' -H 'Content-Type: application/json' -d "{\"benchresult\": $benchresult}" > opencomment.md
+      - name: Create PR Comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s result.txt -a -s opencomment.md ]; then
+            COMMENT_BODY=$(echo -e "## Resultados do Benchmark\n\n\`\`\`\n$(cat result.txt)\n\`\`\`\n\n## Análise do resultado\n\n$(cat opencomment.md)")
+            echo "$COMMENT_BODY" > comment_body.md
+            gh pr comment $PR_NUMBER --body "$(cat comment_body.md)"
+          fi

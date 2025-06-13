@@ -17,22 +17,16 @@ jobs:
       run:
         working-directory: app/
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.22.2
-
-    - name: Install dependencies
-      run: go mod tidy
-
-    - name: Build
-      run: go build -v ./...
-
-    - name: Run tests
-      run: go test -v ./...
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
+      - run: go mod tidy
+      - run: go build -v ./...
+      - run: go test -v ./...
+      - name: Save test results
+        if: always()
+        run: echo "Tests completed"
 
   benchmark:
     needs: build-and-test
@@ -42,7 +36,6 @@ jobs:
         working-directory: app/
     outputs:
       pr_number: ${{ steps.find_pr.outputs.pr_number }}
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
@@ -85,7 +78,7 @@ jobs:
       - name: Run Go Bench (main branch)
         if: env.prExists == 'true'
         run: go test -count=10 -cpu=1,2,4 -benchmem -run=^$ -bench ^*$ ./... > bench-main.txt
-
+        
       - name: Upload benchmark results
         if: env.prExists == 'true'
         uses: actions/upload-artifact@v4
