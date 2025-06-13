@@ -1,4 +1,4 @@
-name: Go
+name: CI Workflow - benchmark with OpenAI
 
 on:
   workflow_dispatch:
@@ -115,7 +115,7 @@ jobs:
           cat result.txt
 
       - name: Analyze benchmark results with OpenAI
-      - run: |
+        run: |
           # Garante UTF-8 puro (mantém se necessário)
           iconv -f utf-8 -t utf-8 result.txt > result_utf8.txt
           # Monta o payload JSON para o modelo
@@ -150,6 +150,7 @@ jobs:
           cat opencomment.md
           # benchresult=$(cat result.txt | jq -Rs .)
           # curl -X POST 'https://openaigh-ggcze4eygjf8a2az.eastus-01.azurewebsites.net/Bench' -H 'accept: text/plain' -H 'Content-Type: application/json' -d "{\"benchresult\": $benchresult}" > opencomment.md
+      
       - name: Create PR Comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
