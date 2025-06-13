@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 
+// Algoritmo de ordenação Merge Sort - Estratégia dividir para conquistar
 // Função para ordenar um array de inteiros
 func Sort(arr []int) []int {
 	if len(arr) <= 1 {
