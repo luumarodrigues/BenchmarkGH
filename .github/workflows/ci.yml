@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  build:
+  CI:
     runs-on: ubuntu-latest
     defaults:
       run:
