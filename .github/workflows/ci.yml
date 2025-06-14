@@ -66,7 +66,7 @@ jobs:
 
       - name: Run Go Bench (current branch)
         if: env.prExists == 'true'
-        run: go test -count=10 -cpu=1,2,4 -benchmem -run=^$ -bench ^*$ ./... > bench-current.txt
+        run: go test -count=10 -cpu=1,2,4 -benchmem -run="" -bench .* ./... > bench-current.txt
 
       - name: Upload benchmark results
         if: env.prExists == 'true'
@@ -83,7 +83,7 @@ jobs:
 
       - name: Run Go Bench (main branch)
         if: env.prExists == 'true'
-        run: go test -count=10 -cpu=1,2,4 -benchmem -run=^$ -bench ^*$ ./... > bench-main.txt
+        run: go test -count=10 -cpu=1,2,4 -benchmem -run="" -bench .* ./... > bench-main.txt
 
       - name: Upload benchmark results
         if: env.prExists == 'true'
@@ -97,21 +97,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/download-artifact@v4
         with:
           name: bench-current
           path: app/
+
       - uses: actions/download-artifact@v4
         with:
           name: bench-main
           path: app/
-      - name: Analyze benchmarks results and comment on PR
-        uses: ./.github/actions/benchmark-analyze
-        with:
-          bench_main: app/bench-main.txt
-          bench_current: app/bench-current.txt
-          azure-openai-key: ${{ secrets.AZURE_OPENAI_KEY }}
-          azure-openai-endpoint: 'https://openai-ghagent.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview'
-          pr-number: ${{ needs.benchmark.outputs.pr_number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-repository: ${{ github.repository }}
+
+      - name: Compare Benchmarks
+        if: env.prExists == 'true'
+        run: |
+          echo "Comparing Benchmarks"
+          benchstat main=bench-main.txt current=bench-current.txt > result.txt
+          cat result.txt
+      
+      - name: Run OpenAI
+        if: env.prExists == 'true'
+        run: |
+          echo "Running OpenAI"
+          benchresult=$(cat result.txt | jq -Rs .)
+          curl -X POST 'https://openaigh-ggcze4eygjf8a2az.eastus-01.azurewebsites.net/Bench' -H 'accept: text/plain' -H 'Content-Type: application/json' -d "{\"benchresult\": $benchresult}" > opencomment.md
+          cat opencomment.md
+      
+      - name: Create PR Comment
+        if: env.prExists == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s result.txt -a -s opencomment.md ]; then
+            COMMENT_BODY=$(echo -e "## Resultados do Benchmark\n\n\`\`\`\n$(cat result.txt)\n\`\`\`\n\n## Análise do resultado\n\n$(cat opencomment.md)")
+            echo "$COMMENT_BODY" > comment_body.md
+            cat comment_body.md
+            gh pr comment $PR_NUMBER --body "$(cat comment_body.md)"
+          else
+            echo "result.txt or opencomment.md is empty. Skipping comment creation."
+          fi

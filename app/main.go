@@ -5,7 +5,7 @@ import "fmt"
 //Algoritmo bubbleSort ordena um slice de inteiros
 func Sort(arr []int) []int {
 	n := len(arr)
-	// Percorre o slice comparando o elemento ao lado e trocando de lugar se estivir fora de ordem
+	// Percorre o slice comparando o elemento ao lado e trocando de posição se estivir fora de ordem
 	for i := 0; i < n-1; i++ {
 		for currentIndex := 0; currentIndex < n-i-1; currentIndex++ {
 			if arr[currentIndex] > arr[currentIndex+1] {
