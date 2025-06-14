@@ -138,4 +138,3 @@ jobs:
           else
             echo "result.txt or opencomment.md is empty. Skipping comment creation."
           fi
-          
