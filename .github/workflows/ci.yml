@@ -34,6 +34,7 @@ jobs:
       run: go test -v ./...
 
   benchmark:
+    if: github.event_pull_request != null
     needs: build-and-test
     runs-on: ubuntu-latest
     defaults:
@@ -93,6 +94,7 @@ jobs:
           path: app/bench-main.txt
 
   analyze-and-comment:
+    if: github.event_pull_request != null
     needs: benchmark
     runs-on: ubuntu-latest
     steps:
