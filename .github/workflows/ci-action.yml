@@ -1,0 +1,111 @@
+name: CI Workflow - benchmark with Action
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - 'main'
+  #     - 'feature/**'
+
+permissions:
+  pull-requests: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
+      - run: go mod tidy
+      - run: go build -v ./...
+      - run: go test -v ./...
+      - name: Save test results
+        if: always()
+        run: echo "Tests completed"
+
+  benchmark:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/
+    outputs:
+      pr_number: ${{ steps.find_pr.outputs.pr_number }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.22.2
+
+      - name: Find Pull Request
+        id: find_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" \
+          | jq '.[0].number')
+          if [ "$PR_NUMBER" == "null" ]; then
+            echo  "prExists=false" >> $GITHUB_ENV
+          else
+            echo  "prExists=true" >> $GITHUB_ENV
+            echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+            echo "::set-output name=pr_number::$PR_NUMBER"
+          fi
+
+      - name: Run Go Bench (current branch)
+        if: env.prExists == 'true'
+        run: go test -count=10 -cpu=1,2,4 -benchmem -run=^$ -bench ^*$ ./... > bench-current.txt
+
+      - name: Upload benchmark results
+        if: env.prExists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-current
+          path: app/bench-current.txt
+
+      - name: Checkout main branch
+        if: env.prExists == 'true'
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Run Go Bench (main branch)
+        if: env.prExists == 'true'
+        run: go test -count=10 -cpu=1,2,4 -benchmem -run=^$ -bench ^*$ ./... > bench-main.txt
+        
+      - name: Upload benchmark results
+        if: env.prExists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-main
+          path: app/bench-main.txt
+
+  analyze-and-comment:
+    needs: benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: bench-current
+          path: app/
+      - uses: actions/download-artifact@v4
+        with:
+          name: bench-main
+          path: app/
+      - name: Analyze benchmarks results and comment on PR
+        uses: ./.github/actions/benchmark-analyze
+        with:
+          bench_main: app/bench-main.txt
+          bench_current: app/bench-current.txt
+          azure-openai-key: ${{ secrets.AZURE_OPENAI_KEY }}
+          azure-openai-endpoint: 'https://openai-ghagent.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview'
+          pr-number: ${{ needs.benchmark.outputs.pr_number }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-repository: ${{ github.repository }}

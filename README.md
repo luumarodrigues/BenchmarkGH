@@ -14,5 +14,10 @@ go run app/main.go
 Para rodar os testes e benchmarks, utilize o comando abaixo:
 
 ```sh
-go test -bench=. -benchmem ./app
- ```
+go test -count=10 -cpu=1,2,4 -benchmem -run="" -bench ^*$ ./...
+```
+
+### Instalar Benchstat
+```sh
+go install golang.org/x/perf/cmd/benchstat@latest
+```
